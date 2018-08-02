@@ -13,6 +13,7 @@
 		"src/target.ts",
         "src/game.ts",
 		"src/gamemode1.ts",
+		"src/gamemode2.ts",
 		"src/main.ts"
     ]
 }

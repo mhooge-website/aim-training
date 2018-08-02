@@ -3,12 +3,10 @@ import { CanvasHelper } from "./canvashelper";
 import { Target } from "./target";
 
 export class GameHoldAngle extends Game {
-    private wallHeight = 200;
     private wallWidth = 20;
     private maxPeekLength = 200;
     private peekCircleDiameter = 80;
-    private peekSpeedMS = 500;
-    private currentTarget : Target;
+    private peekSpeedMS = 200;
 
     constructor(name:string) {
         super(name);
@@ -19,17 +17,10 @@ export class GameHoldAngle extends Game {
         this.gameLoop();
     }
 
-    createTarget(x : number, y: number, d : number) {
-        let target = new Target(x, y, d);
-        this.canvas.addEventListener("click", () => {
-
-        });
-        return target;
-    }
-
-    calculateHeadSize(y : number, scale : number) {
-        let headTop = (y + ((this.wallHeight * scale) / 2)) - (this.peekCircleDiameter * scale / 2);
-        let headBottom = (y + ((this.wallHeight * scale) / 2)) + (this.peekCircleDiameter * scale / 2);
+    calculateHeadSize(scale : number) {
+        let headRadius = (this.peekCircleDiameter * scale) / 2;
+        let headTop = (this.canvas.height / 2) - headRadius;
+        let headBottom = (this.canvas.height / 2) + headRadius;
         return { top: headTop, bot: headBottom };
     }
 
@@ -40,9 +31,9 @@ export class GameHoldAngle extends Game {
         CanvasHelper.drawLine(x+xShift, yBot, x, yBot);
     }
 
-    drawWall(x : number, y : number, scale : number) {
+    drawWall(x : number, scale : number) {
         CanvasHelper.setFillColor("rgb(0, 0, 0)");
-        CanvasHelper.fillRectangle(x, y, this.wallWidth*scale, this.wallHeight*scale);
+        CanvasHelper.fillRectangle(x, 0, this.wallWidth*scale, this.canvas.height);
     }
 
     getPeekLength() {
@@ -58,7 +49,7 @@ export class GameHoldAngle extends Game {
         let peekLength = this.getPeekLength();
         let dir = -1
         let diameter = target.d;
-        let shiftX = diameter/2;
+        let shiftX = diameter;
         if (x < this.canvas.width/2) {
             dir = 1;
             shiftX = shiftX * -1;
@@ -70,18 +61,42 @@ export class GameHoldAngle extends Game {
         let id = setInterval(() => {
             let stepX = (peekLength * (count/frames)) * dir;
             let headX = shiftX + stepX
-            let headY = target.y + (diameter/2);
-            this.redraw(x, y, target.y, target.y + target.d, scale);
-            this.drawHead(headX, headY, diameter);
+            let topY = target.y - (diameter/2);
+            this.activeTargets[0].x = headX;
+            this.eraseInfrontOfWall(x);
+            this.redraw(x, y, topY, topY + target.d, scale);
+            this.drawHead(headX, target.y, diameter);
+            this.eraseBehindWall(x);
+            this.redraw(x, y, topY, topY + target.d, scale);
             count++;
-            if (count > frames) clearInterval(id);
-        }, this.peekSpeedMS/maxFrames);
+            if (count > frames || this.activeTargets.length == 0) clearInterval(id);
+        }, (this.peekSpeedMS/maxFrames)/scale);
+    }
+
+    eraseInfrontOfWall(x : number) {
+        CanvasHelper.setFillColor("rgb(255, 255, 255)");
+        if (x > this.canvas.width / 2) {
+            CanvasHelper.fillRectangle(0, 0, x, this.canvas.height);
+        }
+        else if (x < this.canvas.width / 2) {
+            CanvasHelper.fillRectangle(x, 0, this.canvas.width, this.canvas.height);
+        }
+    }
+
+    eraseBehindWall(x : number) {
+        CanvasHelper.setFillColor("rgb(255, 255, 255)");
+        if (x < this.canvas.width / 2) {
+            CanvasHelper.fillRectangle(0, 0, x, this.canvas.height);
+        }
+        else if (x > this.canvas.width / 2) {
+            CanvasHelper.fillRectangle(x, 0, this.canvas.width, this.canvas.height);
+        }
     }
 
     redraw(x : number, y : number, yTop : number, yBot : number, scale : number) {
-        CanvasHelper.eraseAll(this.canvas);
-        this.drawWall(x, y, scale);
+        this.drawWall(x, scale);
         this.drawWallMarkers(x, yTop, yBot);
+        this.drawMetrics();
     }
 
     drawPeekCountdown(count:number, x:number, y:number) {
@@ -99,27 +114,33 @@ export class GameHoldAngle extends Game {
 
     getPeekPosition() {
         let x = Math.random() * this.canvas.width;
-        let y = Math.random() * this.canvas.height;
         let scale = Math.random();
         if (scale < 0.2) scale = 0.2;
         
         if (x + this.wallWidth > this.canvas.width) x = this.canvas.width - this.wallWidth
-        if (y + this.wallHeight > this.canvas.height) y = this.canvas.height - this.wallHeight
 
-        return { x: x, y: y, scale: scale }
+        return { x: x, scale: scale }
+    }
+
+    targetHit(target : Target) {
+        super.targetHit(target);
+        CanvasHelper.eraseAll(this.canvas);
+        
+        this.activeTargets = [];
+        this.score += 10;
+        this.gameLoop();
     }
 
     gameLoop() {
-        let pos = this.getPeekPosition();
-        let headPos = this.calculateHeadSize(pos.y, pos.scale);
-        this.drawWall(pos.x, pos.y, pos.scale);
-        this.drawWallMarkers(pos.x, headPos.top, headPos.bot);
-        CanvasHelper.setFont("24px serif");
-        this.drawPeekCountdown(3, pos.x, pos.y-5);
+        let peekPos = this.getPeekPosition();
+        let headPos = this.calculateHeadSize(peekPos.scale);
+        this.drawWall(peekPos.x, peekPos.scale);
+        this.drawWallMarkers(peekPos.x, headPos.top, headPos.bot);
+        this.drawPeekCountdown(3, peekPos.x+this.wallWidth+5, headPos.top - 10);
         let targetDiameter = headPos.bot - headPos.top;
         setTimeout(() => {
-            this.currentTarget = this.createTarget(pos.x - targetDiameter/2, headPos.bot, targetDiameter);
-            this.animatePeek(pos.x, pos.y, this.currentTarget, pos.scale);
+            this.activeTargets = [this.createTarget(peekPos.x - targetDiameter/2, headPos.top + targetDiameter/2, targetDiameter)];
+            this.animatePeek(peekPos.x, headPos.top, this.activeTargets[0], peekPos.scale);
         }, 4000)
     }
 }

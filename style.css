@@ -1,4 +1,27 @@
+@font-face {
+    font-family: LogoFont;
+    src: url("./resources/techno_hideo.ttf");
+}
+
 #canvas {
     width: 90%;
     height: 70%;
+    display: none;
+}
+
+#menu-div {
+    text-align: center;
+    margin-top: 10px;
+}
+
+#menu-header {
+    font-size: 4em;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin-bottom: -10px;
+}
+
+#menu-subheader {
+    font-size: 10em;
+    font-family: LogoFont;
+    color: maroon;
 }
