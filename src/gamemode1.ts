@@ -1,6 +1,7 @@
 import { Game } from "./game";
 import { CanvasHelper } from "./canvashelper";
 import { Target } from "./target";
+import { Countdown } from "./countdown";
 
 export class GameHoldAngle extends Game {
     private wallWidth = 20;
@@ -99,19 +100,6 @@ export class GameHoldAngle extends Game {
         this.drawMetrics();
     }
 
-    drawPeekCountdown(count:number, x:number, y:number) {
-        setTimeout(
-            () => {
-                CanvasHelper.setFillColor("rgb(255, 255, 255)");
-                CanvasHelper.fillString((count+1)+"!", x, y);
-                CanvasHelper.setFillColor("rgb(0, 0, 0)");
-                CanvasHelper.fillString(count+"!", x, y);
-
-                if (count > 1) this.drawPeekCountdown(count-1, x, y);
-            }
-        , 1000);
-    }
-
     getPeekPosition() {
         let x = Math.random() * this.canvas.width;
         let scale = Math.random();
@@ -127,7 +115,10 @@ export class GameHoldAngle extends Game {
         CanvasHelper.eraseAll(this.canvas);
         
         this.activeTargets = [];
-        this.score += 10;
+        let multiplier = this.reactTimes[this.reactTimes.length-1] > 1000 ? 1 : 1000/this.reactTimes[this.reactTimes.length-1];
+        this.score += multiplier;
+        
+        super.drawPointsForHit(target, multiplier);
         this.gameLoop();
     }
 
@@ -136,7 +127,7 @@ export class GameHoldAngle extends Game {
         let headPos = this.calculateHeadSize(peekPos.scale);
         this.drawWall(peekPos.x, peekPos.scale);
         this.drawWallMarkers(peekPos.x, headPos.top, headPos.bot);
-        this.drawPeekCountdown(3, peekPos.x+this.wallWidth+5, headPos.top - 10);
+        Countdown.createCountdown(peekPos.x+this.wallWidth+5, headPos.top - 10);
         let targetDiameter = headPos.bot - headPos.top;
         setTimeout(() => {
             this.activeTargets = [this.createTarget(peekPos.x - targetDiameter/2, headPos.top + targetDiameter/2, targetDiameter)];

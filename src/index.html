@@ -23,20 +23,35 @@
 	<script src="/bootstrap/js/bootstrap.min.js"></script>
 	<script src="/aim-training/dist/bundle.js"></script>
 	
-    <div class="container-flex">
-        <div class="row">
-            <div class="col-lg-12">
-				<canvas id="logo-canvas" width=800 height=100></canvas>
-				<div id="menu-div">
-					<p id="menu-header">Welcome to</p>
-					<p id="menu-subheader">Aim Training</p>
-				</div>
+	<div id="menu-div">
+		<div id="menu-headers">
+			<p id="menu-header">Welcome to...</p>
+			<br>
+			<p id="menu-subheader">Aim Training</p>
+		</div>
 
-                <canvas id="canvas" width="600" height="400">
+		<div id="menu-buttons">
+			<button>Hold Angle</button>
+			<br>
 
-                </canvas>
-            </div>
-        </div>
-    </div>
+			<button>Flick</button>
+		</div>
+	</div>
+
+	<div id="game-div">
+		<div id="game-toolbar">
+			<div id="metrics-div">
+				<p id="metric-score">Score: {score}</p>
+				<p id="metric-accuracy">Accuracy: {acc}</p>
+				<p id="metric-react-time">Avg. Reaction Time: {react}</p>
+			</div>
+			<button id="pause-button">Pause</button>
+			<button id="toggle-night-button">Night</button>
+			
+		</div>
+		<canvas id="canvas" width="600" height="400">
+
+		</canvas>
+	</div>
 </body>
 </html>

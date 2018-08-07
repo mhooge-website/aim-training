@@ -3,15 +3,42 @@
     src: url("./resources/techno_hideo.ttf");
 }
 
-#canvas {
-    width: 90%;
-    height: 70%;
+#game-div {
+    width: 100%;
+    height: 100%;
     display: none;
 }
 
+#game-toolbar {
+    display: inline-flex;
+}
+
+#metrics-div > p {
+    font-size: 20px;
+    margin-left: 10px;
+}
+
+#pause-button {
+    margin: auto;
+}
+
+#toggle-night-button {
+    float: right;
+}
+
+#canvas {
+    border-style: solid;
+}
+
 #menu-div {
-    text-align: center;
+    width: 700px;
+    margin: auto;
     margin-top: 10px;
+    text-align: center;
+}
+
+#menu-headers {
+    text-align: center;
 }
 
 #menu-header {
@@ -24,4 +51,31 @@
     font-size: 10em;
     font-family: LogoFont;
     color: maroon;
+    line-height: 70%;
+}
+
+#menu-buttons {
+    display: inline-block;
+    margin-top: 100px;
+    width: 100%;
+}
+
+#menu-buttons > div {
+    margin: auto;
+    width: 200px;
+    height: 60px;
+    display: block;
+}
+
+#menu-buttons > button {
+    border-style: solid;
+    position: relative;
+
+    background-color: white;
+    font-size: 30px;
+    z-index: 500;
+}
+
+#menu-buttons > button {
+    margin-right: 25px;
 }
