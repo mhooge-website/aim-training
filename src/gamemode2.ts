@@ -4,52 +4,48 @@ import { Target } from "./target";
 import { Countdown } from "./countdown";
 
 export class GameFlick extends Game {
-    private targetDiameter = 44;
-
     targetHit(target : Target) {
         super.targetHit(target);
-        CanvasHelper.eraseAll(this.canvas);
+        CanvasHelper.eraseAll();
         
         this.activeTargets = [];
-        let multiplier = this.reactTimes[this.reactTimes.length-1] > 1000 ? 1 : (1000/this.reactTimes[this.reactTimes.length-1]) * 2;
-        this.score += multiplier;
+        let timeMultiplier = this.reactTimes[this.reactTimes.length-1] > 1000 ? 1 : (1000/this.reactTimes[this.reactTimes.length-1]) * 2;
+        
+        let finalScore = timeMultiplier;
 
-        super.drawPointsForHit(target, multiplier);
+        if (finalScore > 1) {
+            let maxDistX = this.canvas.width/2;
+            let maxDistY = this.canvas.height/2;
+            let distX = target.x - maxDistX;
+            let distY = target.y - maxDistY;
+            let distance = Math.sqrt(distX * distX + distY * distY);
+            let maxDist = Math.sqrt(maxDistX * maxDistX + maxDistY * maxDistY);
+            let distanceMultiplier = (distance/maxDist) * 4;
+            if (distanceMultiplier < 1) distanceMultiplier = 1;
+
+            finalScore = timeMultiplier * distanceMultiplier;
+        }
+        this.score += finalScore;
+
+        super.drawPointsForHit(target, finalScore);
         this.gameLoop();
     }
 
     init() {
         super.init();
+        this.targetDiameter = 44;
         this.gameLoop();
     }
 
-    private getTargetPos() {
-        let posOffset = Math.random() > 0.5;
-        let x = Math.random() * (this.canvas.width/2);
-        let y = Math.random() * this.canvas.height;
-        if(y > this.canvas.height - this.targetDiameter) y = this.canvas.height - this.targetDiameter;
-
-        return {
-            x: posOffset ? this.canvas.width/2 + x : this.canvas.width/2 - x,
-            y: y
-        };
-    }
-
-    private drawTarget(target : Target) {
-        CanvasHelper.setFillColor("rgb(255, 0, 0)");
-        CanvasHelper.fillCircle(target.x, target.y, target.d/2);
-    }
-
     gameLoop() {
-        let pos = this.getTargetPos();
+        let x = super.getRandomX();
+        let y = super.getRandomY(this.targetDiameter);
         CanvasHelper.setFont("50px serif");
         Countdown.createCountdown(this.canvas.offsetWidth/2+10, this.canvas.height/2-30);
 
         setTimeout(() => {
-            this.activeTargets = [this.createTarget(pos.x, pos.y, this.targetDiameter)];
-            this.drawTarget(this.activeTargets[0]);
-            console.log(this.canvas.width);
-            CanvasHelper.drawLine(1300, 300, 1300, 400);
+            this.activeTargets = [this.createTarget(x, y, this.targetDiameter)];
+            super.drawTarget(this.activeTargets[0]);
 
         }, 4000);
     }

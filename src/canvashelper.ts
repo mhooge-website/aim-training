@@ -1,5 +1,7 @@
 export class CanvasHelper {
     static drawCtx : CanvasRenderingContext2D;
+    static BG_COLOR = "rgb(255, 255, 255)";
+    static FG_COLOR = "rgb(0, 0, 0)";
 
     static setStrokeColor(color : string) {
         this.drawCtx.strokeStyle = color;
@@ -7,6 +9,14 @@ export class CanvasHelper {
 
     static setFillColor(color : string) {
         this.drawCtx.fillStyle = color;
+    }
+    
+    static setBackgroundColor(color : string) {
+        this.BG_COLOR = color;
+    }
+
+    static setForegroundColor(color : string) {
+        this.FG_COLOR = color;
     }
 
     static setFont(font : string) {
@@ -47,9 +57,9 @@ export class CanvasHelper {
         this.drawCtx.fillRect(x, y, w, h);
     }
 
-    static eraseAll(canvas : HTMLCanvasElement) {
-        this.drawCtx.fillStyle = "rgb(255, 255, 255)";
-        this.drawCtx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+    static eraseAll() {
+        this.drawCtx.fillStyle = this.BG_COLOR;
+        this.drawCtx.fillRect(0, 0, this.drawCtx.canvas.clientWidth, this.drawCtx.canvas.clientHeight);
     }
 
     static setHelperContext(ctx : CanvasRenderingContext2D) {

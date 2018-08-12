@@ -10,17 +10,16 @@ export abstract class Game {
     protected accuracy = 0;
     protected avgReactTime = 0;
     protected reactTimes : number[] = [];
+    protected targetDiameter : number;
     private targetsHit = 0;
     private totalClicks = 0;
+    private nightMode = false;
 
     constructor(name:string) {
         this.name = name;
     }
 
     createTarget(x : number, y: number, d : number) {
-        let pos = CanvasHelper.getRelativePos(x, y, this.canvas);
-        console.log(pos.x + ", " + pos.y);
-        console.log(x + ", " + y);
         let target = new Target(x, y, d);
         return target;
     }
@@ -31,10 +30,7 @@ export abstract class Game {
 
             let pos = CanvasHelper.getRelativePos(e.clientX, e.clientY, this.canvas);
             for(let i = 0; i < this.activeTargets.length; i++) {
-                console.log("Target: " + this.activeTargets[i].x + ", " + this.activeTargets[i].y)
-                console.log("Click: " + pos.x + ", " + pos.y);
-                console.log("Click: " + e.clientX + ", " + e.clientY);
-                if (this.activeTargets[i].contains(pos.x, pos.y)) {
+                if (this.activeTargets[i] != undefined && this.activeTargets[i].contains(pos.x, pos.y)) {
                     this.targetHit(this.activeTargets[i]);
                 }
             }
@@ -44,21 +40,103 @@ export abstract class Game {
     }
     
     init() {
+        // Show canvas div, set canvas size.
         this.canvas = $("#canvas").get(0) as HTMLCanvasElement;
         let div = $("#game-div").get(0);
+        let toolbarDiv = $("#game-toolbar").get(0);
         div.style.display = "block";
+        div.style.height = (window.innerHeight-div.offsetTop-50) + "px";
         this.canvas.width = div.offsetWidth;
-        this.canvas.height = div.offsetHeight
+        this.canvas.height = div.offsetHeight - toolbarDiv.offsetHeight;
     
+        // Add listener for night-mode button.
+        let nightButton = $("#toggle-night-button").get(0) as HTMLButtonElement;
+        nightButton.onclick = (ev) => {
+            this.toggleNightMode(nightButton);
+        } 
+
         CanvasHelper.setHelperContext(this.canvas.getContext("2d"));
+        if (this.nightMode) 
+            this.enableNightMode();
+        else
+            this.disableNightMode();
         CanvasHelper.setFont("24px serif");
         this.addCanvasListener();
         this.drawMetrics();
     }
 
+    protected drawTarget(target : Target, color = "rgb(255, 0, 0)") {
+        CanvasHelper.setFillColor(color);
+        CanvasHelper.fillCircle(target.x, target.y, target.d/2);
+    }
+
+    protected eraseTarget(target : Target) {
+        CanvasHelper.setFillColor(CanvasHelper.BG_COLOR);
+        CanvasHelper.fillCircle(target.x-1, target.y-1, (target.d/2)+2);
+    }
+
+    protected getRandomX(borderOffset = 0) {
+        let x = Math.random() * this.canvas.width;
+        
+        if (x + borderOffset > this.canvas.width) x = this.canvas.width - borderOffset;
+
+        return x;
+    }
+
+    protected getRandomY(borderOffset = 0) {
+        let y = Math.random() * this.canvas.height;
+        
+        if (y + borderOffset > this.canvas.height) y = this.canvas.height - borderOffset;
+
+        return y;
+    }
+
+    private enableNightMode(btn : HTMLButtonElement = null) {
+        let bgColor = "rgb(30, 30, 30)";
+        let fgColor = "rgb(255, 255, 255)";
+        
+        document.body.style.backgroundColor = bgColor;
+        CanvasHelper.setBackgroundColor(bgColor);
+        CanvasHelper.setForegroundColor(fgColor);
+        $("#metrics-div").get(0).style.color = fgColor;
+
+        if (btn != null) {
+            let img = btn.firstChild as HTMLImageElement;
+            img.src = "/aim-training/resources/light_on.png";
+        }
+
+        this.nightMode = true;
+    }
+
+    private disableNightMode(btn : HTMLButtonElement = null) {
+        let bgColor = "rgb(255, 255, 255)";
+        let fgColor = "rgb(0, 0, 0)";
+        
+        document.body.style.backgroundColor = bgColor;
+        CanvasHelper.setBackgroundColor(bgColor);
+        CanvasHelper.setForegroundColor(fgColor);
+        $("#metrics-div").get(0).style.color = fgColor;
+
+        if (btn != null) {
+            let img = btn.firstChild as HTMLImageElement;
+            img.src = "/aim-training/resources/light_off.png";
+        }
+
+        this.nightMode = false;
+    }
+
+    private toggleNightMode(btn : HTMLButtonElement) {
+        if (this.nightMode) {
+            this.disableNightMode(btn);
+        }
+        else {
+            this.enableNightMode(btn);
+        }
+        this.redraw();
+    }
+
     targetHit(target : Target) {
-        CanvasHelper.setFillColor("rgb(255, 255, 255)");
-        CanvasHelper.fillCircle(target.x, target.y, target.d);
+        this.eraseTarget(target);
         
         this.targetsHit += 1;
         let timePassed = (new Date().getTime()) - target.timeCreated;
@@ -69,13 +147,48 @@ export abstract class Game {
         let x = target.x;
         let y = target.y-10;
         CanvasHelper.setFont("16px serif");
-        CanvasHelper.setFillColor("rgb(0, 0, 0)");
+        CanvasHelper.setFillColor(CanvasHelper.FG_COLOR);
         CanvasHelper.fillString("+"+points.toFixed(0), x, y);
         CanvasHelper.fillString(this.reactTimes[this.reactTimes.length-1]+" ms", x-10, y+15);
         setTimeout(() => {
-            CanvasHelper.setFillColor("rgb(255, 255, 255)");
+            CanvasHelper.setFillColor(CanvasHelper.BG_COLOR);
             CanvasHelper.fillRectangle(x-15, y-30, 60, 55);
         }, 1000);
+    }
+
+    resizeTargets(lifetime : number) {
+        let halftime = lifetime/2;
+        let frames = 40;
+        let delta = this.targetDiameter/(frames/2);
+        let id = setInterval(() => {
+            for(let i = 0; i < this.activeTargets.length; i++) {
+                let target = this.activeTargets[i];
+                
+                if (target == undefined) {
+                    continue;
+                }
+                // Erase target from canvas.
+                this.eraseTarget(target);
+                let lifetime = Date.now() - target.timeCreated;
+                if (lifetime > halftime) {
+                    // Target should shrink.
+                    if (lifetime > lifetime) {
+                        this.activeTargets[i] = undefined;
+                        continue;
+                    }
+                    else {
+                        target.d -= delta;
+                    }
+                }
+                else {
+                    // Target should grow.
+                    target.d += delta;
+                }
+                // Re-draw target with new size.
+                this.drawTarget(target);
+                
+            };
+        }, lifetime/frames);
     }
 
     calculateMetrics() {
@@ -90,13 +203,20 @@ export abstract class Game {
             this.avgReactTime = reactSum / this.reactTimes.length;
     }
 
-    drawMetrics() {
+    protected drawMetrics() {
         let scoreLabel = $("#metric-score").get(0) as HTMLParagraphElement;
         let accuracyLabel = $("#metric-accuracy").get(0) as HTMLParagraphElement;
         let scoreReact = $("#metric-react-time").get(0) as HTMLParagraphElement;
         scoreLabel.textContent = "Score: " + this.score.toFixed(0);
         accuracyLabel.textContent = "Accuracy: " + this.accuracy.toPrecision(4) + "%";
         scoreReact.textContent = "Avg Reaction Time: " + this.avgReactTime.toFixed(0) + " ms.";
+    }
+
+    protected redraw() {
+        CanvasHelper.eraseAll();
+        this.activeTargets.forEach(target => {
+            this.drawTarget(target);
+        });
     }
     
     abstract gameLoop() : void;

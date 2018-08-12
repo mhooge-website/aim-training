@@ -32,9 +32,9 @@
 
 		<div id="menu-buttons">
 			<button>Hold Angle</button>
-			<br>
-
 			<button>Flick</button>
+			<button>Swarm</button>
+			<button>Custom</button>
 		</div>
 	</div>
 
@@ -45,13 +45,47 @@
 				<p id="metric-accuracy">Accuracy: {acc}</p>
 				<p id="metric-react-time">Avg. Reaction Time: {react}</p>
 			</div>
-			<button id="pause-button">Pause</button>
-			<button id="toggle-night-button">Night</button>
-			
+			<button id="pause-button"><img src="/aim-training/resources/pause_icon.png" width="54" height="54"/></button>
+			<button id="toggle-night-button"><img src="/aim-training/resources/light_off.png" width="54" height="54"/></button>
 		</div>
+
 		<canvas id="canvas" width="600" height="400">
 
 		</canvas>
+	</div>
+
+	<div id="custom-game-div">
+		<h1>Custom Training</h1>
+		Moving Targets
+		<input id="custom-moving-targets" type="checkbox"></input><br>
+		<div id="move-pattern-div">
+			Random strafes<input id="custom-move-random" type="radio"></input><br>
+			Uniform - Short strafes <input id="custom-move-uni-short" type="radio"></input>
+			Uniform - Long strafes <input id="custom-move-uni-long" type="radio"></input><br>
+		</div>
+		<br>
+		Delay before targets <input id="custom-target-lifetime" type="number" value="0" min="0" max="10"/>
+		<br>disappear (0 = never)
+
+		<br><br>
+		Target grows/shrinks <input id="custom-target-grows" type="checkbox"/>
+		
+		<br><br>
+		Target max diameter (px) <input id="custom-target-diameter" type="number" value="44" min="6" max="100"/>
+
+		<br><br>
+		Max number of <input id="custom-max-targets" type="number" value="1" min="1" max="30"/><br>
+		active targets
+		
+		<br><br>
+		Delay before new <input id="custom-spawn-delay" type="number" value="1.0" min="0.5" max="10"/><br>
+		target spawns (seconds)
+
+		<br><br>
+		<div id="custom-button-div">
+			<button>Go</button>
+			<button>Back</button>
+		</div>
 	</div>
 </body>
 </html>

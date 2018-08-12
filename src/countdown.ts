@@ -7,10 +7,10 @@ function drawNumber(n : number, x : number, y : number) {
     let fontSize = maxFontSize;
     let id = setInterval(() => {
         fontSize = fontSize - ((maxFontSize-oldFontSize)/25);
-        CanvasHelper.setFillColor("rgb(255, 255, 255)");
+        CanvasHelper.setFillColor(CanvasHelper.BG_COLOR);
         CanvasHelper.fillRectangle(x-5, y-100, 85, 105);
         CanvasHelper.setFont(fontSize+"px serif");
-        CanvasHelper.setFillColor("rgb(0, 0, 0)");
+        CanvasHelper.setFillColor(CanvasHelper.FG_COLOR);
         CanvasHelper.fillString(n+"!", x, y);
         counter++;
         if (counter > 25) {
@@ -23,7 +23,7 @@ function drawNumber(n : number, x : number, y : number) {
 function countdown(count : number, x : number, y : number) {
     setTimeout(
         () => {
-            CanvasHelper.setFillColor("rgb(255, 255, 255)");
+            CanvasHelper.setFillColor(CanvasHelper.BG_COLOR);
             CanvasHelper.fillRectangle(x-5, y-100, 85, 105);
             drawNumber(count, x, y);
 
