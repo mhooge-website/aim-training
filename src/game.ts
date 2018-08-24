@@ -19,9 +19,19 @@ export abstract class Game {
         this.name = name;
     }
 
-    createTarget(x : number, y: number, d : number) {
-        let target = new Target(x, y, d);
+    createTarget(x : number, y: number, d : number, color="rgb(255, 0, 0)") {
+        let target = new Target(x, y, d, color);
         return target;
+    }
+
+    startTargetLifetimeCounter(target : Target, lifetime : number) {
+        setTimeout(() => this.targetExpired(target), lifetime);
+    }
+
+    protected targetExpired(target : Target) {
+        let index = this.activeTargets.indexOf(target);
+        this.activeTargets[index] = undefined;
+        this.eraseTarget(target);
     }
 
     private addCanvasListener() {
@@ -65,8 +75,8 @@ export abstract class Game {
         this.drawMetrics();
     }
 
-    protected drawTarget(target : Target, color = "rgb(255, 0, 0)") {
-        CanvasHelper.setFillColor(color);
+    protected drawTarget(target : Target) {
+        CanvasHelper.setFillColor(target.color);
         CanvasHelper.fillCircle(target.x, target.y, target.d/2);
     }
 
@@ -156,39 +166,32 @@ export abstract class Game {
         }, 1000);
     }
 
-    resizeTargets(lifetime : number) {
-        let halftime = lifetime/2;
-        let frames = 40;
-        let delta = this.targetDiameter/(frames/2);
-        let id = setInterval(() => {
-            for(let i = 0; i < this.activeTargets.length; i++) {
-                let target = this.activeTargets[i];
-                
-                if (target == undefined) {
-                    continue;
+    resizeTargets(lifetime : number, delta : number) {
+        for(let i = 0; i < this.activeTargets.length; i++) {
+            let target = this.activeTargets[i];
+            
+            if (target == undefined) {
+                continue;
+            }
+            // Erase target from canvas.
+            this.eraseTarget(target);
+            let now = Date.now();
+            let targetLifetime = now - target.timeCreated;
+            if (targetLifetime > lifetime/2) {
+                // Target should shrink.
+                if (targetLifetime >= lifetime) {
+                    target.timeCreated = now;
                 }
-                // Erase target from canvas.
-                this.eraseTarget(target);
-                let lifetime = Date.now() - target.timeCreated;
-                if (lifetime > halftime) {
-                    // Target should shrink.
-                    if (lifetime > lifetime) {
-                        this.activeTargets[i] = undefined;
-                        continue;
-                    }
-                    else {
-                        target.d -= delta;
-                    }
-                }
-                else {
-                    // Target should grow.
-                    target.d += delta;
-                }
-                // Re-draw target with new size.
-                this.drawTarget(target);
-                
-            };
-        }, lifetime/frames);
+                target.d -= delta;
+            }
+            else {
+                // Target should grow.
+                target.d += delta;
+            }
+            // Re-draw target with new size.
+            this.drawTarget(target);
+            
+        };
     }
 
     calculateMetrics() {

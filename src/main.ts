@@ -49,10 +49,10 @@ function setupCustomGameMenu() {
     // Functionality for disabling radio buttons indicating other forms of
     // move-patterns, when one such form is selected.
     let customMoveRadios = $("#move-pattern-div > input");
-    for(let i = 0; i < customMoveRadios.length; i++) {
+    for(let i = 0; i < 3; i++) {
         let radioButton = customMoveRadios[i] as HTMLInputElement;
         let otherButtons : HTMLInputElement[] = [];
-        for(let j = 0; j < customMoveRadios.length; j++) {
+        for(let j = 0; j < 3; j++) {
             if(i != j) {
                 let otherButton = customMoveRadios[j] as HTMLInputElement;
                 otherButtons.push(otherButton);
