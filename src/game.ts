@@ -63,7 +63,13 @@ export abstract class Game {
         let nightButton = $("#toggle-night-button").get(0) as HTMLButtonElement;
         nightButton.onclick = (ev) => {
             this.toggleNightMode(nightButton);
-        } 
+        };
+
+        // Add listener for pause button.
+        let pauseButton = $("#pause-button").get(0) as HTMLButtonElement;
+        pauseButton.onclick = (ev) => {
+            this.pause();
+        };
 
         CanvasHelper.setHelperContext(this.canvas.getContext("2d"));
         if (this.nightMode) 
@@ -99,6 +105,10 @@ export abstract class Game {
         if (y + borderOffset > this.canvas.height) y = this.canvas.height - borderOffset;
 
         return y;
+    }
+
+    private pause() {
+
     }
 
     private enableNightMode(btn : HTMLButtonElement = null) {
